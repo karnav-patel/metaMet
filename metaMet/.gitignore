@@ -1,0 +1,20 @@
+# Ignore all files in the data/raw/brenda directory except .gitkeep
+data/raw/brenda/*
+
+# Ignore the entire data/raw/metacyc directory except .gitkeep
+data/raw/metacyc/*
+
+data/raw/metacyc/*
+# Ignore contents of the processed data directories but keep the folders via .gitkeep
+data/processed/brenda/*
+data/processed/kegg/*
+data/processed/metacyc/*
+data/processed/merged/*
+data/processed/predictkcat/*
+data/processed/sabio/*
+data/processed/overview/*
+
+data_preprocessing/utils/predictkcat/DLKcat/*
+
+# Ignore all __pycache__ directories across the entire repo
+**/__pycache__/
