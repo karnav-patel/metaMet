@@ -6,6 +6,7 @@
 % Generated files:
 %   - full_model_summary.tsv
 %   - full_model_flux_comparison.tsv
+%   - full_model_ec_number_audit.tsv
 %   - full_model_kcat_distribution.tsv
 %   - full_model_top_enzyme_usage.tsv
 %   - full_model_overview.pdf
@@ -33,15 +34,23 @@ end
 
 fullPath = layout.fullEcModel;
 kcatPath = layout.fullEcModelKcat;
+rxnToEcPath = layout.rxnToEcCsv;
+ecMapPath = fullfile(here, 'metaMet', 'data', 'raw', 'mapping_ec_numbers', 'mapping_ec_number_old_new.csv');
 if ~isfile(fullPath) || ~isfile(kcatPath)
     error('Missing ecModel_full.yml or ecModel_full_kcat.yml. Run the full-model pipeline first.');
 end
 
 fullModel = readYAMLmodel(fullPath);
 kcatModel = readYAMLmodel(kcatPath);
+adapterParams = getFullAdapterParameters(layout);
 
 fullSol = solveLP(fullModel);
 kcatSol = solveLP(kcatModel);
+
+expectedProtPoolLb = NaN;
+if isfinite(adapterParams.sigma) && isfinite(adapterParams.Ptot) && isfinite(adapterParams.f)
+    expectedProtPoolLb = -(adapterParams.sigma * adapterParams.Ptot * adapterParams.f * 1000);
+end
 
 summaryTbl = table( ...
     string({'ecModel_full'; 'ecModel_full_kcat'}), ...
@@ -53,23 +62,39 @@ summaryTbl = table( ...
     [getProtPoolLb(fullModel); getProtPoolLb(kcatModel)], ...
     [fullSol.stat; kcatSol.stat], ...
     [fullSol.f; kcatSol.f], ...
-    'VariableNames', {'model','n_rxns','n_mets','n_usage_prot','n_ec_rxns','n_nonzero_kcat','prot_pool_lb','fba_stat','objective'} ...
+    repmat(adapterParams.sigma, 2, 1), ...
+    repmat(adapterParams.Ptot, 2, 1), ...
+    repmat(adapterParams.f, 2, 1), ...
+    repmat(adapterParams.gR_exp, 2, 1), ...
+    repmat(adapterParams.bioRxn, 2, 1), ...
+    repmat(expectedProtPoolLb, 2, 1), ...
+    'VariableNames', {'model','n_rxns','n_mets','n_usage_prot','n_ec_rxns','n_nonzero_kcat','prot_pool_lb','fba_stat','objective','sigma','Ptot','f_param','gR_exp','bio_rxn','expected_prot_pool_lb'} ...
 );
 writetable(summaryTbl, fullfile(outDir, 'full_model_summary.tsv'), 'FileType', 'text', 'Delimiter', '\t');
 
 commonRxns = intersect(string(fullModel.rxns), string(kcatModel.rxns), 'stable');
 [~, fullIdx] = ismember(commonRxns, string(fullModel.rxns));
 [~, kcatIdx] = ismember(commonRxns, string(kcatModel.rxns));
+rxnToEcTbl = loadRxnToEcTable(rxnToEcPath);
+ecMapInfo = loadEcOldNewInfo(ecMapPath);
+[rxnBaseIds, ecNumbers, ecMapStatus, ecOldNewStatus] = annotateFluxRxns(commonRxns, rxnToEcTbl, ecMapInfo);
 fluxTbl = table( ...
     commonRxns, ...
+    rxnBaseIds, ...
     string(fullModel.rxnNames(fullIdx)), ...
+    ecNumbers, ...
+    ecMapStatus, ...
+    ecOldNewStatus, ...
     fullSol.x(fullIdx), ...
     kcatSol.x(kcatIdx), ...
     abs(kcatSol.x(kcatIdx) - fullSol.x(fullIdx)), ...
-    'VariableNames', {'rxn_id','rxn_name','flux_full','flux_full_kcat','abs_flux_delta'} ...
+    'VariableNames', {'rxn_id','rxn_base_id','rxn_name','ec_numbers','ec_map_status','ec_oldnew_status','flux_full','flux_full_kcat','abs_flux_delta'} ...
 );
 fluxTbl = sortrows(fluxTbl, 'abs_flux_delta', 'descend');
 writetable(fluxTbl, fullfile(outDir, 'full_model_flux_comparison.tsv'), 'FileType', 'text', 'Delimiter', '\t');
+
+ecAuditTbl = buildEcAuditTable(rxnToEcTbl, ecMapInfo);
+writetable(ecAuditTbl, fullfile(outDir, 'full_model_ec_number_audit.tsv'), 'FileType', 'text', 'Delimiter', '\t');
 
 if isfield(kcatModel, 'ec') && isfield(kcatModel.ec, 'kcat')
     kcatVals = kcatModel.ec.kcat(:);
@@ -130,8 +155,16 @@ title('Top enzyme usage in kcat model');
 exportgraphics(fig, fullfile(outDir, 'full_model_overview.pdf'), 'ContentType', 'vector');
 close(fig);
 
+disp(summaryTbl);
+fprintf('GECKO full adapter params: sigma=%g, Ptot=%g, f=%g, gR_exp=%g, bioRxn=%s\n', ...
+    adapterParams.sigma, adapterParams.Ptot, adapterParams.f, adapterParams.gR_exp, char(adapterParams.bioRxn));
+fprintf('Expected prot_pool_exchange lower bound from GECKO params: %g\n', expectedProtPoolLb);
+printStatusCounts(fluxTbl.ec_map_status, 'Flux-to-EC mapping status');
+printStatusCounts(ecAuditTbl.ec_oldnew_status, 'rxn_to_ec old/new EC coverage');
+
 fprintf('Wrote %s\n', fullfile(outDir, 'full_model_summary.tsv'));
 fprintf('Wrote %s\n', fullfile(outDir, 'full_model_flux_comparison.tsv'));
+fprintf('Wrote %s\n', fullfile(outDir, 'full_model_ec_number_audit.tsv'));
 fprintf('Wrote %s\n', fullfile(outDir, 'full_model_kcat_distribution.tsv'));
 fprintf('Wrote %s\n', fullfile(outDir, 'full_model_top_enzyme_usage.tsv'));
 fprintf('Wrote %s\n', fullfile(outDir, 'full_model_overview.pdf'));
@@ -193,4 +226,217 @@ function plotTopEnzymeUsage(enzymeTbl)
     set(gca, 'YTick', 1:n, 'YTickLabel', cellstr(enzymeTbl.protID(end:-1:1)));
     xlabel('Absolute usage');
     ylabel('Protein');
+end
+
+function params = getFullAdapterParameters(layout)
+    params = struct('sigma', NaN, 'Ptot', NaN, 'f', NaN, 'gR_exp', NaN, 'bioRxn', "");
+    try
+        if exist('ModelAdapterManager', 'class') == 8
+            adapterPath = fullfile(layout.matlabAdaptersDir, 'CarveMeFullModelAdapter.m');
+            if isfile(adapterPath)
+                ModelAdapterManager.setDefault(adapterPath, true);
+                adapter = ModelAdapterManager.getDefault();
+                p = adapter.getParameters();
+                params.sigma = getNumericField(p, 'sigma');
+                params.Ptot = getNumericField(p, 'Ptot');
+                params.f = getNumericField(p, 'f');
+                params.gR_exp = getNumericField(p, 'gR_exp');
+                if isfield(p, 'bioRxn')
+                    params.bioRxn = string(p.bioRxn);
+                end
+            end
+        end
+    catch ME
+        warning('Could not read full-model adapter parameters for reporting: %s', ME.message);
+    end
+end
+
+function value = getNumericField(s, fieldName)
+    value = NaN;
+    if isfield(s, fieldName)
+        raw = s.(fieldName);
+        if isnumeric(raw)
+            value = double(raw);
+        else
+            value = str2double(string(raw));
+        end
+    end
+end
+
+function tbl = loadRxnToEcTable(path)
+    if ~isfile(path)
+        tbl = table(strings(0,1), strings(0,1), strings(0,1), 'VariableNames', {'rxn_id','ec_number','ec_raw'});
+        return;
+    end
+    tbl = readtable(path, 'TextType', 'string');
+    tbl.rxn_id = string(tbl.rxn_id);
+    tbl.ec_number = strtrim(string(tbl.ec_number));
+    if ismember('ec_raw', tbl.Properties.VariableNames)
+        tbl.ec_raw = string(tbl.ec_raw);
+    else
+        tbl.ec_raw = repmat("", height(tbl), 1);
+    end
+end
+
+function info = loadEcOldNewInfo(path)
+    info = struct();
+    info.oldVals = strings(0,1);
+    info.newVals = strings(0,1);
+    info.oldToNew = containers.Map('KeyType', 'char', 'ValueType', 'any');
+
+    if ~isfile(path)
+        return;
+    end
+
+    opts = detectImportOptions(path, 'FileType', 'text');
+    opts = setvartype(opts, opts.VariableNames, 'string');
+    opts.VariableNamingRule = 'preserve';
+    tbl = readtable(path, opts);
+    varNames = string(tbl.Properties.VariableNames);
+    lowerNames = lower(varNames);
+
+    oldIdx = find(contains(lowerNames, 'old'), 1, 'first');
+    newIdx = find(contains(lowerNames, 'new'), 1, 'first');
+    if isempty(oldIdx) || isempty(newIdx)
+        return;
+    end
+
+    oldVals = strtrim(string(tbl.(varNames(oldIdx))));
+    newVals = strtrim(string(tbl.(varNames(newIdx))));
+    keep = oldVals ~= "" & newVals ~= "";
+    oldVals = oldVals(keep);
+    newVals = newVals(keep);
+    info.oldVals = unique(oldVals);
+    info.newVals = unique(newVals);
+
+    uniqueOld = unique(oldVals);
+    for i = 1:numel(uniqueOld)
+        key = uniqueOld(i);
+        replacements = unique(newVals(oldVals == key));
+        info.oldToNew(char(key)) = replacements;
+    end
+end
+
+function [baseIds, ecNumbers, mapStatus, oldNewStatus] = annotateFluxRxns(rxnIds, rxnToEcTbl, ecMapInfo)
+    n = numel(rxnIds);
+    baseIds = strings(n,1);
+    ecNumbers = strings(n,1);
+    mapStatus = strings(n,1);
+    oldNewStatus = strings(n,1);
+
+    for i = 1:n
+        rxnId = string(rxnIds(i));
+        baseId = normalizeFluxRxnId(rxnId);
+        baseIds(i) = baseId;
+
+        if startsWith(rxnId, 'usage_prot_')
+            mapStatus(i) = "gecko_protein_usage";
+            oldNewStatus(i) = "not_applicable";
+            continue;
+        elseif rxnId == "prot_pool_exchange"
+            mapStatus(i) = "gecko_protein_pool";
+            oldNewStatus(i) = "not_applicable";
+            continue;
+        elseif rxnId == "Growth"
+            mapStatus(i) = "biomass_objective";
+            oldNewStatus(i) = "not_applicable";
+        end
+
+        directMask = rxnToEcTbl.rxn_id == rxnId;
+        baseMask = rxnToEcTbl.rxn_id == baseId;
+        sourceMask = directMask;
+        if any(directMask)
+            mapStatus(i) = "mapped_direct";
+        elseif any(baseMask)
+            sourceMask = baseMask;
+            mapStatus(i) = "mapped_by_base_id";
+        elseif mapStatus(i) == ""
+            mapStatus(i) = "no_ec_in_draft_model";
+        end
+
+        ecs = unique(strtrim(string(rxnToEcTbl.ec_number(sourceMask))));
+        ecs(ecs == "") = [];
+        if isempty(ecs)
+            ecNumbers(i) = "";
+            if oldNewStatus(i) == ""
+                oldNewStatus(i) = "not_applicable";
+            end
+            continue;
+        end
+
+        ecNumbers(i) = join(ecs, ';');
+        oldStatuses = classifyEcCoverage(ecs, ecMapInfo);
+        if all(oldStatuses == "new_ec_in_map" | oldStatuses == "old_ec_in_map")
+            oldNewStatus(i) = "all_listed_in_oldnew_map";
+        elseif any(oldStatuses == "new_ec_in_map" | oldStatuses == "old_ec_in_map")
+            oldNewStatus(i) = "partially_listed_in_oldnew_map";
+        else
+            oldNewStatus(i) = "not_listed_in_oldnew_map";
+        end
+    end
+end
+
+function tbl = buildEcAuditTable(rxnToEcTbl, ecMapInfo)
+    if isempty(rxnToEcTbl)
+        tbl = table(strings(0,1), strings(0,1), strings(0,1), strings(0,1), ...
+            'VariableNames', {'rxn_id','ec_number','ec_oldnew_status','mapped_new_ec_numbers'});
+        return;
+    end
+
+    tbl = unique(rxnToEcTbl(:, {'rxn_id','ec_number'}));
+    n = height(tbl);
+    status = strings(n,1);
+    mappedNew = strings(n,1);
+    for i = 1:n
+        ec = strtrim(string(tbl.ec_number(i)));
+        if ec == ""
+            status(i) = "empty";
+            mappedNew(i) = "";
+            continue;
+        end
+        if any(ecMapInfo.oldVals == ec)
+            status(i) = "old_ec_in_map";
+            if isKey(ecMapInfo.oldToNew, char(ec))
+                mappedNew(i) = join(string(ecMapInfo.oldToNew(char(ec))), ';');
+            else
+                mappedNew(i) = "";
+            end
+        elseif any(ecMapInfo.newVals == ec)
+            status(i) = "new_ec_in_map";
+            mappedNew(i) = ec;
+        else
+            status(i) = "not_listed_in_oldnew_map";
+            mappedNew(i) = "";
+        end
+    end
+    tbl.ec_oldnew_status = status;
+    tbl.mapped_new_ec_numbers = mappedNew;
+end
+
+function baseId = normalizeFluxRxnId(rxnId)
+    baseId = regexprep(string(rxnId), '_EXP_\d+$', '');
+    baseId = regexprep(baseId, '_REV$', '');
+end
+
+function status = classifyEcCoverage(ecs, ecMapInfo)
+    status = repmat("not_listed_in_oldnew_map", numel(ecs), 1);
+    for i = 1:numel(ecs)
+        ec = strtrim(string(ecs(i)));
+        if any(ecMapInfo.oldVals == ec)
+            status(i) = "old_ec_in_map";
+        elseif any(ecMapInfo.newVals == ec)
+            status(i) = "new_ec_in_map";
+        end
+    end
+end
+
+function printStatusCounts(values, label)
+    values = string(values(:));
+    values(values == "") = "(empty)";
+    [u, ~, idx] = unique(values, 'stable');
+    counts = accumarray(idx, 1);
+    fprintf('%s:\n', label);
+    for i = 1:numel(u)
+        fprintf('  %s: %d\n', u(i), counts(i));
+    end
 end

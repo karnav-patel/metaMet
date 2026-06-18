@@ -208,9 +208,24 @@ def normalize_relpath(path: Path | str) -> str:
 
 def infer_workspace_root(current_file: Path, levels_up: int = 3) -> Path:
     path = current_file.resolve()
+    for candidate in path.parents:
+        has_package = (candidate / "src" / "modelyml").is_dir()
+        has_workspace_markers = any(
+            marker.exists()
+            for marker in (
+                candidate / "config" / "pipeline.toml",
+                candidate / "inputs",
+                candidate / "matlab",
+                candidate / "metaMet",
+            )
+        )
+        if has_package and has_workspace_markers:
+            return candidate
+
+    fallback = path
     for _ in range(levels_up):
-        path = path.parent
-    return path
+        fallback = fallback.parent
+    return fallback
 
 
 def get_workspace_layout(workspace: Path) -> WorkspaceLayout:
@@ -287,6 +302,33 @@ def _run_command(command: list[str], cwd: Path, logger: Logger, dry_run: bool = 
         )
 
 
+def ensure_gecko_protocol_aliases(gecko_dir: Path, logger: Logger = None, dry_run: bool = False) -> None:
+    alias_specs = (
+        (
+            gecko_dir / "tutorials" / "full_ecModel" / "protocol.m",
+            gecko_dir / "tutorials" / "full_ecModel" / "protocol_full.m",
+        ),
+        (
+            gecko_dir / "tutorials" / "light_ecModel" / "protocol.m",
+            gecko_dir / "tutorials" / "light_ecModel" / "protocol_light.m",
+        ),
+    )
+    for source, target in alias_specs:
+        if not source.is_file():
+            continue
+        if dry_run:
+            log_message(logger, f"Would prepare GECKO tutorial protocol alias: {target}")
+            continue
+        if target.exists():
+            try:
+                if target.read_bytes() == source.read_bytes():
+                    continue
+            except OSError:
+                pass
+        shutil.copy2(source, target)
+        log_message(logger, f"Prepared GECKO tutorial protocol alias: {target}")
+
+
 def ensure_gecko_checkout(
     workspace: Path,
     gecko_dir: Path,
@@ -300,9 +342,11 @@ def ensure_gecko_checkout(
     if gecko_dir.is_dir():
         if (gecko_dir / ".git").exists():
             log_message(logger, f"Using existing GECKO checkout: {gecko_dir}")
+            ensure_gecko_protocol_aliases(gecko_dir, logger=logger, dry_run=dry_run)
             return gecko_dir
         if (gecko_dir / "src").is_dir() and (gecko_dir / "README.md").is_file():
             log_message(logger, f"Using existing GECKO directory: {gecko_dir}")
+            ensure_gecko_protocol_aliases(gecko_dir, logger=logger, dry_run=dry_run)
             return gecko_dir
         raise RuntimeSetupError(
             f"GECKO directory exists but does not look like a usable checkout: {gecko_dir}"
@@ -318,6 +362,7 @@ def ensure_gecko_checkout(
     clone_command.extend([repo_url, str(gecko_dir)])
     log_message(logger, f"Cloning GECKO into {gecko_dir}")
     _run_command(clone_command, cwd=workspace, logger=logger, dry_run=dry_run)
+    ensure_gecko_protocol_aliases(gecko_dir, logger=logger, dry_run=dry_run)
     return gecko_dir
 
 

@@ -3,58 +3,34 @@ proteins	genes	gene_name	kcat	rxns	notes	stoicho
 			0.74	R_ABTA	metamet_kcat_aggregate	
 			177	R_ACACT1r	metamet_kcat_aggregate	
 			8.5	R_ACCOAC	metamet_kcat_aggregate	
-			4.94	R_ACHBS	metamet_kcat_aggregate	
-			4.94	R_ACLS	metamet_kcat_aggregate	
 			5.5	R_ACOADH2	metamet_kcat_aggregate	
 			5.25	R_ACONT	metamet_kcat_aggregate	
 			1.55	R_ACOTA,R_ACOTA_REV	metamet_kcat_aggregate	
-			956.5	R_ACP1_FMN	metamet_kcat_aggregate	
 			5.628	R_ADCL	metamet_kcat_aggregate	
 			0.53	R_ADCS	metamet_kcat_aggregate	
-			1.14	R_ADSL1r	metamet_kcat_aggregate	
-			1.14	R_ADSL2r	metamet_kcat_aggregate	
-			0.96	R_ADSS	metamet_kcat_aggregate	
-			2.2874	R_AGPR	metamet_kcat_aggregate	
 			2.55	R_AHCi	metamet_kcat_aggregate	
 			13.5	R_AHGDx	metamet_kcat_aggregate	
-			5.735	R_AICART	metamet_kcat_aggregate	
 			116	R_AKGDH	metamet_kcat_aggregate	
 			9	R_ALAALAr	metamet_kcat_aggregate	
-			35.85	R_ALAR	metamet_kcat_aggregate	
 			35.4	R_ALCD19	metamet_kcat_aggregate	
 			188.018	R_ALCD22_L	metamet_kcat_aggregate	
 			32.3134	R_ALLK	metamet_kcat_aggregate	
 			322	R_ALLPI	metamet_kcat_aggregate	
 			16.4248	R_ALTRH	metamet_kcat_aggregate	
-			0.73	R_ANPRT	metamet_kcat_aggregate	
-			0.265	R_ANS2	metamet_kcat_aggregate	
-			1.59	R_APPAT	metamet_kcat_aggregate	
 			28.5299	R_APPLDHr,R_APPLDHr_REV	metamet_kcat_aggregate	
 			1.41	R_APRTO2	metamet_kcat_aggregate	
 			0.08	R_APSR	metamet_kcat_aggregate	
 			0.47	R_APTNAT,R_APTNAT_REV	metamet_kcat_aggregate	
-			9.765	R_ARGSL	metamet_kcat_aggregate	
-			6.44875	R_ARGSS	metamet_kcat_aggregate	
 			10.0468	R_ARGabcpp	metamet_kcat_aggregate	
-			9.5	R_ASAD	metamet_kcat_aggregate	
-			0.985	R_ASNS1	metamet_kcat_aggregate	
-			19.315	R_ASP1DC	metamet_kcat_aggregate	
-			11.335	R_ASPK	metamet_kcat_aggregate	
-			41.85	R_ASPO2	metamet_kcat_aggregate	
 			22	R_ASPTA,R_ASPTA_REV	metamet_kcat_aggregate	
 			1.3861	R_AST	metamet_kcat_aggregate	
-			1.16	R_ATPPRT	metamet_kcat_aggregate	
 			16.5	R_ATPS4rpp	metamet_kcat_aggregate	
 			18.6	R_BGLA	metamet_kcat_aggregate	
-			43	R_BZDH	metamet_kcat_aggregate	
 			95	R_CA2abc	metamet_kcat_aggregate	
 			17150	R_CAT	metamet_kcat_aggregate	
 			3.3665	R_CD2abcpp	metamet_kcat_aggregate	
-			38.7	R_CHORM	metamet_kcat_aggregate	
-			0.076	R_CHORS	metamet_kcat_aggregate	
 			1.3	R_CHRPL	metamet_kcat_aggregate	
 			360.5	R_CMPDAi	metamet_kcat_aggregate	
-			0.01775	R_CMPN	metamet_kcat_aggregate	
 			100	R_CS	metamet_kcat_aggregate	
 			6.45	R_CTPS1	metamet_kcat_aggregate	
 			1.11845	R_CU2abcpp	metamet_kcat_aggregate	
@@ -62,26 +38,16 @@ proteins	genes	gene_name	kcat	rxns	notes	stoicho
 			130	R_CYSS	metamet_kcat_aggregate	
 			10.0468	R_CYSabcpp	metamet_kcat_aggregate	
 			1.11845	R_Cuabc	metamet_kcat_aggregate	
-			15.65	R_DAPDC	metamet_kcat_aggregate	
-			75.5	R_DAPE	metamet_kcat_aggregate	
 			60.8	R_DDGLK	metamet_kcat_aggregate	
 			17	R_DHACOAH	metamet_kcat_aggregate	
-			5.7	R_DHAD1	metamet_kcat_aggregate	
-			5.7	R_DHAD2	metamet_kcat_aggregate	
 			5.17	R_DHAK	metamet_kcat_aggregate	
-			20	R_DHDPRx_r	metamet_kcat_aggregate	
-			14.8	R_DHFR2i	metamet_kcat_aggregate	
-			1.69485	R_DHFS	metamet_kcat_aggregate	
-			19.36	R_DHQTi	metamet_kcat_aggregate	
 			0.4	R_DMATT	metamet_kcat_aggregate	
 			3.11	R_DMPPS	metamet_kcat_aggregate	
 			1.74	R_DPMVD	metamet_kcat_aggregate	
-			12.2	R_DPR	metamet_kcat_aggregate	
 			6	R_DTMPK	metamet_kcat_aggregate	
 			4.825	R_DXPRIi	metamet_kcat_aggregate	
 			2.56	R_DXPS	metamet_kcat_aggregate	
 			283.8	R_EDA	metamet_kcat_aggregate	
-			4.2822	R_EDD	metamet_kcat_aggregate	
 			35.535	R_ENO	metamet_kcat_aggregate	
 			1.695	R_FBA	metamet_kcat_aggregate	
 			1.695	R_FBA2	metamet_kcat_aggregate	
@@ -91,49 +57,27 @@ proteins	genes	gene_name	kcat	rxns	notes	stoicho
 			0.081	R_FMNAT	metamet_kcat_aggregate	
 			3.32435	R_FRUK	metamet_kcat_aggregate	
 			2.6	R_FTHFLi	metamet_kcat_aggregate	
-			58.35	R_FUM	metamet_kcat_aggregate	
-			19	R_G1PACT	metamet_kcat_aggregate	
-			365	R_G6PDH1	metamet_kcat_aggregate	
-			1.235	R_GF6PTA	metamet_kcat_aggregate	
-			3.3	R_GHMT2r	metamet_kcat_aggregate	
 			101.4	R_GK1	metamet_kcat_aggregate	
-			8.52	R_GLNS	metamet_kcat_aggregate	
-			60	R_GLUDy	metamet_kcat_aggregate	
 			2.39065	R_GLUPRT	metamet_kcat_aggregate	
-			12.3833	R_GLUR	metamet_kcat_aggregate	
 			51	R_GLUSx	metamet_kcat_aggregate	
 			14	R_GLYCDx	metamet_kcat_aggregate	
 			275	R_GLYCK2	metamet_kcat_aggregate	
 			116	R_GLYCL	metamet_kcat_aggregate	
 			258.3	R_GLYOX_1	metamet_kcat_aggregate	
-			132.9	R_GLYTA	metamet_kcat_aggregate	
-			7.5	R_GMPS2	metamet_kcat_aggregate	
 			0.345	R_GRTT	metamet_kcat_aggregate	
 			2.376	R_GSNK	metamet_kcat_aggregate	
-			0.0035	R_GTPCI	metamet_kcat_aggregate	
 			4302.15	R_HADPCOADH3	metamet_kcat_aggregate	
 			3.07775	R_HBZOPT	metamet_kcat_aggregate	
 			13350	R_HCO3E,R_HCO3E_REV	metamet_kcat_aggregate	
-			1.361	R_HISTD	metamet_kcat_aggregate	
 			15	R_HMGCOAR	metamet_kcat_aggregate	
 			0.0542	R_HMGCOAS	metamet_kcat_aggregate	
-			2.8	R_HSDxi	metamet_kcat_aggregate	
-			10	R_HSST	metamet_kcat_aggregate	
-			1.025	R_HSTPTr	metamet_kcat_aggregate	
 			30	R_ICDHx	metamet_kcat_aggregate	
-			8.5	R_ICL	metamet_kcat_aggregate	
-			1000	R_IGPDH_1	metamet_kcat_aggregate	
-			0.285	R_IGPS	metamet_kcat_aggregate	
-			5.735	R_IMPC	metamet_kcat_aggregate	
-			1.435	R_IMPD	metamet_kcat_aggregate	
 			2.376	R_INSK	metamet_kcat_aggregate	
 			3.11	R_IPDPS	metamet_kcat_aggregate	
 			6	R_IPMD	metamet_kcat_aggregate	
 			4.58895	R_IPPMIa,R_IPPMIa_REV	metamet_kcat_aggregate	
 			4.58895	R_IPPMIb,R_IPPMIb_REV	metamet_kcat_aggregate	
 			2.15	R_IPPS	metamet_kcat_aggregate	
-			0.6	R_KARA1	metamet_kcat_aggregate	
-			0.472	R_KARA2	metamet_kcat_aggregate	
 			188.018	R_LALDO2x	metamet_kcat_aggregate	
 			1.6	R_LDAPAT	metamet_kcat_aggregate	
 			54.6	R_LEUTAi	metamet_kcat_aggregate	
@@ -147,73 +91,42 @@ proteins	genes	gene_name	kcat	rxns	notes	stoicho
 			186	R_MDH	metamet_kcat_aggregate	
 			2.7	R_MECDPS	metamet_kcat_aggregate	
 			1.02	R_METAT	metamet_kcat_aggregate	
-			18.8	R_METS	metamet_kcat_aggregate	
 			22.5	R_MG2abc	metamet_kcat_aggregate	
 			160	R_MLDCP2App	metamet_kcat_aggregate	
 			160	R_MLDCP3App	metamet_kcat_aggregate	
 			1.3865	R_MOBDabcpp	metamet_kcat_aggregate	
-			0.78	R_MOHMT	metamet_kcat_aggregate	
-			35.85	R_MTHFR	metamet_kcat_aggregate	
 			2.83	R_NABTNO	metamet_kcat_aggregate	
 			25.8	R_NADH16pp	metamet_kcat_aggregate	
 			262	R_NADK1	metamet_kcat_aggregate	
-			0.525	R_NADS1	metamet_kcat_aggregate	
-			11	R_NDP8	metamet_kcat_aggregate	
 			97.7002	R_NI2abcpp	metamet_kcat_aggregate	
 			97.7002	R_NI2uabcpp	metamet_kcat_aggregate	
 			1.3	R_NMNAT	metamet_kcat_aggregate	
-			1.3	R_NNATr	metamet_kcat_aggregate	
-			0.12	R_NNDPR	metamet_kcat_aggregate	
 			0.01225	R_NPHS	metamet_kcat_aggregate	
 			4.9	R_NTD11	metamet_kcat_aggregate	
 			250	R_OAADC	metamet_kcat_aggregate	
-			150	R_OCBT_1	metamet_kcat_aggregate	
 			0.0036	R_OCTDPS	metamet_kcat_aggregate	
 			6	R_OMCDC	metamet_kcat_aggregate	
-			6.65	R_OMPDC	metamet_kcat_aggregate	
 			2.2176	R_OPHBDC	metamet_kcat_aggregate	
-			2.7967	R_ORNTAC_1	metamet_kcat_aggregate	
-			1.96	R_ORPT	metamet_kcat_aggregate	
-			0.76	R_OXADC	metamet_kcat_aggregate	
 			8.0997	R_OXDHCOAT	metamet_kcat_aggregate	
 			4.8374	R_OXPTNDH	metamet_kcat_aggregate	
-			1.4	R_PANTS	metamet_kcat_aggregate	
 			0.01965	R_PAPPT3	metamet_kcat_aggregate	
 			116	R_PDH	metamet_kcat_aggregate	
-			60.5	R_PFK	metamet_kcat_aggregate	
-			7.665	R_PFL	metamet_kcat_aggregate	
-			0.31	R_PGAMT	metamet_kcat_aggregate	
 			69	R_PGI	metamet_kcat_aggregate	
-			0.7053	R_PGL	metamet_kcat_aggregate	
-			272	R_PGM	metamet_kcat_aggregate	
 			22	R_PHETA1,R_PHETA1_REV	metamet_kcat_aggregate	
 			3.65	R_PMEVK	metamet_kcat_aggregate	
 			0.07	R_PMPK	metamet_kcat_aggregate	
-			0.93	R_PNTK	metamet_kcat_aggregate	
 			89.85	R_PPA_1pp	metamet_kcat_aggregate	
-			0.833333	R_PPCDC	metamet_kcat_aggregate	
-			2.9	R_PPNCL3	metamet_kcat_aggregate	
-			0.6415	R_PPND2	metamet_kcat_aggregate	
-			0.3835	R_PPNDH	metamet_kcat_aggregate	
 			4.6915	R_PPS	metamet_kcat_aggregate	
 			4.2	R_PRAGSr	metamet_kcat_aggregate	
-			0.032	R_PRAIi	metamet_kcat_aggregate	
-			3.345	R_PRAMPC	metamet_kcat_aggregate	
-			32.5125	R_PRASCSi	metamet_kcat_aggregate	
-			1.06915	R_PRATPP	metamet_kcat_aggregate	
 			4.307	R_PRFGCL	metamet_kcat_aggregate	
 			2.49	R_PRFGS_1	metamet_kcat_aggregate	
-			1.105	R_PRMICI	metamet_kcat_aggregate	
 			37	R_PRPPS	metamet_kcat_aggregate	
-			3.6	R_PSCVT	metamet_kcat_aggregate	
 			3.953	R_PTRCAT1	metamet_kcat_aggregate	
 			5.35345	R_PTRCabcpp	metamet_kcat_aggregate	
 			0.00067	R_PYDXS	metamet_kcat_aggregate	
 			40.06	R_PYK2	metamet_kcat_aggregate	
-			0.6945	R_QULNS	metamet_kcat_aggregate	
 			0.945	R_RBFK	metamet_kcat_aggregate	
 			20.65	R_RBK	metamet_kcat_aggregate	
-			0.275	R_RNDR4	metamet_kcat_aggregate	
 			270	R_RPE	metamet_kcat_aggregate	
 			322	R_RPI	metamet_kcat_aggregate	
 			5.0893	R_SADH	metamet_kcat_aggregate	
@@ -228,7 +141,6 @@ proteins	genes	gene_name	kcat	rxns	notes	stoicho
 			3	R_SOTA	metamet_kcat_aggregate	
 			5.35345	R_SPMDabcpp	metamet_kcat_aggregate	
 			22.6	R_SSALx	metamet_kcat_aggregate	
-			75.2	R_SUCOAACTr	metamet_kcat_aggregate	
 			19.6	R_SUCOAS	metamet_kcat_aggregate	
 			245	R_SULR_1	metamet_kcat_aggregate	
 			12.0986	R_SULabcpp	metamet_kcat_aggregate	
@@ -237,24 +149,16 @@ proteins	genes	gene_name	kcat	rxns	notes	stoicho
 			0.22	R_THDPS	metamet_kcat_aggregate	
 			14.8	R_THFOR2	metamet_kcat_aggregate	
 			956.5	R_THMP	metamet_kcat_aggregate	
-			2.18	R_THRS	metamet_kcat_aggregate	
 			13.1	R_TKT1	metamet_kcat_aggregate	
 			13.1	R_TKT2	metamet_kcat_aggregate	
-			3.2	R_TMDSf	metamet_kcat_aggregate	
 			0.063	R_TMPK	metamet_kcat_aggregate	
 			3.1054	R_TMPPP	metamet_kcat_aggregate	
 			1367	R_TPI	metamet_kcat_aggregate	
 			8.19	R_TRDR	metamet_kcat_aggregate	
-			1.75	R_TRPS1	metamet_kcat_aggregate	
 			1.5749	R_TRPTA,R_TRPTA_REV	metamet_kcat_aggregate	
 			22	R_TYRTA,R_TYRTA_REV	metamet_kcat_aggregate	
-			1.2	R_UAAGDS	metamet_kcat_aggregate	
 			78.125	R_UAG2EMA	metamet_kcat_aggregate	
-			4.855	R_UAGDP	metamet_kcat_aggregate	
 			0.195	R_UAGPT3	metamet_kcat_aggregate	
-			0.3	R_UAMAGS	metamet_kcat_aggregate	
-			15.3	R_UAMAS	metamet_kcat_aggregate	
-			0.2	R_UDCPDPS	metamet_kcat_aggregate	
 			1.4	R_UGMDDS	metamet_kcat_aggregate	
 			490.5	R_UMPK	metamet_kcat_aggregate	
 			16.9	R_UNK3	metamet_kcat_aggregate	

@@ -97,7 +97,7 @@ def copy_inputs(workspace: Path, destination: Path, dry_run: bool) -> None:
             shutil.copy2(src, dst)
 
 
-def build_light_output_files(workspace: Path) -> list[Path]:
+def build_light_output_files(workspace: Path, gecko_dir: Path) -> list[Path]:
     layout = get_workspace_layout(workspace)
     return [
         layout.sanitized_fasta,
@@ -110,6 +110,7 @@ def build_light_output_files(workspace: Path) -> list[Path]:
         layout.light_ec_model,
         layout.light_ec_model_light,
         layout.light_ec_model_kcat,
+        gecko_dir / "tutorials" / "light_ecModel" / "protocol_light.m",
     ]
 
 
@@ -131,8 +132,10 @@ def build_full_output_files(workspace: Path, gecko_dir: Path) -> list[Path]:
         layout.rxn_to_ec_csv,
         layout.full_ec_model,
         layout.full_ec_model_kcat,
+        gecko_dir / "tutorials" / "full_ecModel" / "protocol_full.m",
         tutorial_dir / "full_model_summary.tsv",
         tutorial_dir / "full_model_flux_comparison.tsv",
+        tutorial_dir / "full_model_ec_number_audit.tsv",
         tutorial_dir / "full_model_kcat_distribution.tsv",
         tutorial_dir / "full_model_top_enzyme_usage.tsv",
         tutorial_dir / "full_model_overview.pdf",
@@ -171,7 +174,7 @@ def build_pipeline_command(
     gecko_ref: str | None,
     resume: bool,
 ) -> list[str]:
-    command = [python_cmd, str(script_name), "--log-file", str(log_path)]
+    command = [python_cmd, str(script_name), "--workspace", str(workspace), "--log-file", str(log_path)]
     command.extend(["--gecko-dir", str(gecko_dir), "--gecko-repo", gecko_repo])
     if gecko_ref:
         command.extend(["--gecko-ref", gecko_ref])
@@ -238,7 +241,7 @@ def main() -> int:
     ensure_exists(layout.light_pipeline_script, "light pipeline script")
     ensure_exists(layout.full_pipeline_script, "full pipeline script")
 
-    light_outputs = build_light_output_files(workspace)
+    light_outputs = build_light_output_files(workspace, (workspace / args.gecko_dir).resolve() if not args.gecko_dir.is_absolute() else args.gecko_dir.resolve())
     full_outputs = build_full_output_files(workspace, (workspace / args.gecko_dir).resolve() if not args.gecko_dir.is_absolute() else args.gecko_dir.resolve())
 
     cases = [

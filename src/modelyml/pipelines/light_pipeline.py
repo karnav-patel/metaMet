@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import selectors
 import shlex
 import shutil
 import subprocess
@@ -9,6 +10,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from time import monotonic
 from typing import Iterable, Sequence
 
 if __package__ in {None, ""}:
@@ -412,10 +414,53 @@ def run_process(command: Sequence[str], cwd: Path, log_handle, dry_run: bool, en
         bufsize=1,
     )
     assert process.stdout is not None
-    for line in process.stdout:
-        text = line.rstrip("\n")
-        print(text, flush=True)
-        log_handle.write(text + "\n")
+    selector = selectors.DefaultSelector()
+    selector.register(process.stdout, selectors.EVENT_READ)
+    exit_grace_started: float | None = None
+    open_pipe_notice_emitted = False
+
+    try:
+        while True:
+            events = selector.select(timeout=0.5)
+            if events:
+                for key, _ in events:
+                    line = key.fileobj.readline()
+                    if line == "":
+                        try:
+                            selector.unregister(key.fileobj)
+                        except Exception:
+                            pass
+                        continue
+                    text = line.rstrip("\n")
+                    print(text, flush=True)
+                    log_handle.write(text + "\n")
+                log_handle.flush()
+                exit_grace_started = None
+
+            if process.poll() is None:
+                continue
+
+            if not selector.get_map():
+                break
+
+            if exit_grace_started is None:
+                exit_grace_started = monotonic()
+                continue
+
+            if monotonic() - exit_grace_started < 1.0:
+                continue
+
+            if not open_pipe_notice_emitted:
+                emit(
+                    "NOTE: Child process exited but its stdout pipe remained open via descendant helper processes; continuing after a short grace period.",
+                    log_handle,
+                )
+                open_pipe_notice_emitted = True
+            break
+    finally:
+        selector.close()
+        process.stdout.close()
+
     process.wait()
     log_handle.flush()
     if process.returncode != 0:
