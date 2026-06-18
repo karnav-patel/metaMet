@@ -1,0 +1,51 @@
+# OS / editor
+.DS_Store
+.vscode/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# MATLAB
+*.asv
+
+# Auto-cloned dependencies
+external/GECKO-main/
+
+# Generated runtime outputs
+artifacts/logs/*
+artifacts/reports/*
+artifacts/collections/*
+artifacts/drafts/*
+artifacts/models/light/*
+artifacts/models/full/*
+artifacts/adapters/light/data/*
+artifacts/adapters/full/data/*
+
+# Keep folder placeholders
+!artifacts/logs/.gitkeep
+!artifacts/reports/.gitkeep
+!artifacts/collections/.gitkeep
+!artifacts/drafts/.gitkeep
+!artifacts/models/light/.gitkeep
+!artifacts/models/full/.gitkeep
+!artifacts/adapters/light/data/.gitkeep
+!artifacts/adapters/full/data/.gitkeep
+
+# Legacy generated root outputs to keep out of version control during migration
+pipeline_logs/
+DATA_INPUT_OUTPUT/
+gecko_adapter/
+gecko_full_adapter/
+ecModel*.yml
+model.yml
+model.xml
+model_nogapfill.xml
+rxn_to_ec.csv
+genome_for_carveme.faa
+genome_for_carveme.tsv
+genome_for_carveme_header_map.tsv
+
+# Misc
+*.log

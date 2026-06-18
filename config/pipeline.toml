@@ -1,0 +1,22 @@
+[run]
+mode = "all"
+include_gapfill = true
+include_no_gapfill = true
+resume = true
+dry_run = false
+cleanup_legacy_root = true
+gapfill_media = "M9"
+
+[tools]
+python_cmd = ""
+matlab_cmd = ""
+carve_cmd = "carve"
+matlab_mode = "batch"
+
+[gecko]
+dir = "external/GECKO-main"
+repo = "https://github.com/SysBioChalmers/GECKO.git"
+ref = ""
+
+[paths]
+collections_dir = "artifacts/collections"

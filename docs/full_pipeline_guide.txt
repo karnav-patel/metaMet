@@ -1,0 +1,339 @@
+metaMet ↔ GECKO Full Pipeline Guide
+===================================
+
+Pipeline file
+-------------
+This guide explains the full-model pipeline implemented in:
+run_metaMet_gecko_full_pipeline.py
+
+Purpose
+-------
+The full pipeline starts from a genome FASTA file and builds a full GECKO-style enzyme-constrained model.
+It prepares the draft model, converts it to YAML, creates the full GECKO adapter inputs, builds the full ecModel,
+applies kcat values from metaMet, runs quality checks, and produces analysis outputs.
+
+Main input
+----------
+Required main input file:
+- genome.faa
+
+Other required supporting inputs already expected in the workspace:
+- sanitize_fasta_for_carveme.py
+- GECKO-main/
+- metaMet/
+- CarveMeFullModelAdapter.m
+- prepare_gecko_full_adapter.m
+- sbml_to_yaml_roundtrip.m
+- build_ecmodel_gecko_full.m
+- export_rxn_to_ec.m
+- apply_kcat_from_metMet_full.m
+- qc_gecko_full_models.m
+- analyze_gecko_full_outputs.m
+- metaMet/data/processed/overview/kcat_aggregate.csv
+
+What the pipeline does
+----------------------
+The pipeline runs these numbered stages:
+
+Step 1: Sanitize FASTA headers for CarveMe
+- Input:
+  - genome.faa
+- Script used:
+  - sanitize_fasta_for_carveme.py
+- Output:
+  - genome_for_carveme.faa
+  - genome_for_carveme_header_map.tsv
+- Purpose:
+  - Makes FASTA headers safe and consistent for CarveMe.
+
+Example input:
+>sp|P12345|GENE_A Some protein from organism X
+MSTNPKPQRK...
+
+Example output:
+>gene_00001
+MSTNPKPQRK...
+
+Example map file row:
+gene_00001	sp|P12345|GENE_A Some protein from organism X
+
+Step 1: Build draft GEM with CarveMe
+- Input:
+  - genome_for_carveme.faa
+- Tool used:
+  - carve
+- Main output:
+  - model.xml
+- Optional behavior:
+  - If --gapfill-media is given, draft reconstruction includes gapfilling.
+  - If --init-media is given, CarveMe initializes exchange bounds using that medium.
+
+Example command behavior:
+- No gapfilling:
+  carve genome_for_carveme.faa -o model.xml
+- With gapfilling:
+  carve genome_for_carveme.faa -o model.xml --gapfill M9
+
+Example output:
+- model.xml = draft metabolic model in SBML format
+
+Step 2: Convert SBML to GECKO/RAVEN YAML
+- Input:
+  - model.xml
+- MATLAB script used:
+  - sbml_to_yaml_roundtrip.m
+- Output:
+  - model.yml
+- Purpose:
+  - Converts the draft SBML model into the YAML format used by downstream GECKO/RAVEN steps.
+
+Example output file:
+- model.yml
+
+Step 3: Prepare full-model GECKO adapter inputs
+- Input:
+  - model.yml
+  - GECKO databases and adapter logic
+- MATLAB script used:
+  - prepare_gecko_full_adapter.m
+- Outputs:
+  - gecko_full_adapter/data/uniprot.tsv
+  - gecko_full_adapter/data/uniprotConversion.tsv
+  - gecko_full_adapter/data/pseudoRxns.tsv
+  - gecko_full_adapter/data/required_inputs_summary.txt
+  - often also supporting files such as ComplexPortal.json and kegg.tsv
+- Purpose:
+  - Builds the extra mapping and helper files required for the full GECKO formulation.
+
+Example output description:
+- uniprot.tsv = protein/enzyme mapping table
+- uniprotConversion.tsv = identifier conversion helper table
+- pseudoRxns.tsv = pseudo-reaction definitions for the full model setup
+
+Step 3: Build full GECKO ecModel scaffold
+- Input:
+  - model.yml
+  - prepared full adapter files
+- MATLAB script used:
+  - build_ecmodel_gecko_full.m
+- Output:
+  - ecModel_full.yml
+- Purpose:
+  - Builds the full enzyme-constrained scaffold before kcat assignment.
+
+Example output:
+- ecModel_full.yml
+
+Step 4: Export reaction-to-EC mapping
+- Input:
+  - draft/full model data generated in earlier steps
+- MATLAB script used:
+  - export_rxn_to_ec.m
+- Output:
+  - rxn_to_ec.csv
+- Purpose:
+  - Creates the reaction-to-EC mapping used for kcat transfer.
+
+Example output rows:
+reaction_id,ec_number
+R_EX_glc__D_e,1.1.1.1
+R_PFK,2.7.1.11
+
+Step 5: Apply metaMet kcats to the full GECKO model
+- Inputs:
+  - ecModel_full.yml
+  - rxn_to_ec.csv
+  - metaMet/data/processed/overview/kcat_aggregate.csv
+- MATLAB script used:
+  - apply_kcat_from_metMet_full.m
+- Outputs:
+  - gecko_full_adapter/data/customKcats.tsv
+  - ecModel_full_kcat.yml
+  - metaMet/data_modeling/models/ecModel_full_kcat.yml
+- Purpose:
+  - Transfers curated or aggregated kcat values into the full GECKO model.
+
+Example output description:
+- customKcats.tsv = kcat values assigned to enzyme/reaction constraints
+- ecModel_full_kcat.yml = final full enzyme-constrained model with kcats
+
+Step 6: Run QC checks on full GECKO models
+- Input:
+  - ecModel_full.yml
+  - ecModel_full_kcat.yml
+- MATLAB script used:
+  - qc_gecko_full_models.m
+- Output:
+  - validated full model files remain in place
+- Purpose:
+  - Confirms that the generated full model is structurally and computationally usable.
+
+Typical checks may include:
+- file existence
+- model loadability
+- comparison of model sizes
+- basic flux or feasibility checks
+
+Step 7: Generate rich full-model analysis outputs
+- Input:
+  - full model outputs from previous steps
+- MATLAB script used:
+  - analyze_gecko_full_outputs.m
+- Outputs:
+  - GECKO-main/tutorials/full_ecModel/output/full_model_summary.tsv
+  - GECKO-main/tutorials/full_ecModel/output/full_model_flux_comparison.tsv
+  - GECKO-main/tutorials/full_ecModel/output/full_model_kcat_distribution.tsv
+  - GECKO-main/tutorials/full_ecModel/output/full_model_top_enzyme_usage.tsv
+  - GECKO-main/tutorials/full_ecModel/output/full_model_overview.pdf
+- Purpose:
+  - Produces analysis tables and a summary PDF for interpretation of the full model.
+
+Example analysis outputs:
+- full_model_summary.tsv = summary counts and overview statistics
+- full_model_flux_comparison.tsv = flux behavior comparison table
+- full_model_kcat_distribution.tsv = summary of assigned kcat values
+- full_model_top_enzyme_usage.tsv = major enzyme usage table
+- full_model_overview.pdf = visual report
+
+Basic run commands
+------------------
+Run the complete full pipeline:
+python run_metaMet_gecko_full_pipeline.py
+
+Run with explicit MATLAB path:
+python run_metaMet_gecko_full_pipeline.py --matlab-cmd /Applications/MATLAB_R2025b.app/bin/matlab
+
+Run with gapfilling:
+python run_metaMet_gecko_full_pipeline.py --gapfill-media M9
+
+Run with gapfilling and explicit MATLAB path:
+python run_metaMet_gecko_full_pipeline.py --matlab-cmd /Applications/MATLAB_R2025b.app/bin/matlab --gapfill-media M9
+
+Run a subset of steps only:
+python run_metaMet_gecko_full_pipeline.py --from-step 3 --to-step 7
+
+Run in resume mode:
+python run_metaMet_gecko_full_pipeline.py --resume
+
+Dry-run only:
+python run_metaMet_gecko_full_pipeline.py --dry-run
+
+Important command-line options
+------------------------------
+--workspace
+- Sets the workspace root.
+
+--matlab-cmd
+- Path to MATLAB executable.
+
+--carve-cmd
+- CarveMe command or executable name.
+
+--gapfill-media
+- Optional medium for CarveMe gapfilling.
+- Example: M9
+
+--init-media
+- Optional medium to initialize exchange bounds.
+
+--matlab-mode
+- MATLAB invocation mode.
+- Choices: batch or r
+
+--from-step and --to-step
+- Limit execution to a selected step range.
+
+--resume
+- Skips steps whose expected outputs already exist.
+
+--dry-run
+- Prints commands without executing them.
+
+--log-file
+- Writes pipeline logs to the chosen file path.
+
+Typical input/output flow
+-------------------------
+genome.faa
+  -> genome_for_carveme.faa
+  -> model.xml
+  -> model.yml
+  -> full adapter files
+  -> ecModel_full.yml
+  -> rxn_to_ec.csv
+  -> ecModel_full_kcat.yml
+  -> analysis outputs (.tsv and .pdf)
+
+Important output files to keep
+------------------------------
+Core outputs:
+- model.xml
+- model.yml
+- rxn_to_ec.csv
+- ecModel_full.yml
+- ecModel_full_kcat.yml
+
+Full adapter outputs:
+- gecko_full_adapter/data/uniprot.tsv
+- gecko_full_adapter/data/uniprotConversion.tsv
+- gecko_full_adapter/data/pseudoRxns.tsv
+- gecko_full_adapter/data/required_inputs_summary.txt
+- gecko_full_adapter/data/customKcats.tsv
+- gecko_full_adapter/data/ComplexPortal.json
+- gecko_full_adapter/data/kegg.tsv
+
+Analysis outputs:
+- GECKO-main/tutorials/full_ecModel/output/full_model_summary.tsv
+- GECKO-main/tutorials/full_ecModel/output/full_model_flux_comparison.tsv
+- GECKO-main/tutorials/full_ecModel/output/full_model_kcat_distribution.tsv
+- GECKO-main/tutorials/full_ecModel/output/full_model_top_enzyme_usage.tsv
+- GECKO-main/tutorials/full_ecModel/output/full_model_overview.pdf
+
+Final deliverable
+-----------------
+The main final deliverable of the full pipeline is:
+- ecModel_full_kcat.yml
+
+This is the full GECKO enzyme-constrained model with kcat values applied.
+
+Example successful run summary
+------------------------------
+Input:
+- genome.faa
+- kcat_aggregate.csv
+
+Key produced files:
+- genome_for_carveme.faa
+- model.xml
+- model.yml
+- ecModel_full.yml
+- rxn_to_ec.csv
+- customKcats.tsv
+- ecModel_full_kcat.yml
+- full_model_summary.tsv
+- full_model_overview.pdf
+
+When to use this full pipeline
+------------------------------
+Use the full pipeline when you want:
+- a more complete GECKO full-model formulation
+- extra adapter files for detailed enzyme modeling
+- richer downstream analysis outputs
+- a final deliverable in ecModel_full_kcat.yml format
+
+Troubleshooting notes
+---------------------
+If the pipeline fails, check:
+- genome.faa exists in the workspace root
+- MATLAB path is correct
+- CarveMe is installed and callable
+- metaMet/data/processed/overview/kcat_aggregate.csv exists
+- required MATLAB scripts are present
+- the log file for the failed run
+
+Suggested log example:
+python run_metaMet_gecko_full_pipeline.py --log-file pipeline_logs/full_pipeline.log
+
+End of guide
+------------
+This file documents the intended step-by-step behavior of run_metaMet_gecko_full_pipeline.py and gives example inputs, outputs, and common run patterns.

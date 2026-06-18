@@ -1,0 +1,95 @@
+metaMet ↔ GECKO ecModel pipeline (short)
+
+SECTION 1 — Workflow (what happens, step-by-step)
+
+1) Build a draft GEM (SBML)
+   - Command: carve genome.faa -o model.xml
+   - Output: model.xml (SBML GEM)
+
+2) Convert SBML → GECKO/RAVEN YAML GEM
+   - Run: sbml_to_yaml_roundtrip.m
+   - Why: GECKO uses RAVEN/GECKO YAML I/O (readYAMLmodel/writeYAMLmodel)
+   - Output: model.yml (GECKO/RAVEN-compatible YAML GEM)
+
+3) Build the GECKO ecModel scaffold
+   - Run: prepare_gecko_adapter.m (creates minimal adapter + uniprot.tsv)
+   - Run: build_ecmodel_gecko.m
+   - Result: ecModel.yml (ecModel with enzyme-constraint structure; kcats may still be 0)
+
+4) Export reaction ↔ EC mapping (bridge to metaMet data)
+   - Run: export_rxn_to_ec.m
+   - Output: rxn_to_ec.csv (one EC per row per reaction)
+
+5) Apply metaMet kcats to the GECKO ecModel
+   - Run: apply_kcat_from_metMet.m
+   - Reads: rxn_to_ec.csv + metaMet aggregated kcat table
+   - Writes: gecko_adapter/data/customKcats.tsv
+   - Applies: applyCustomKcats() to fill ec reaction kcats + apply kcat constraints
+   - Output: ecModel_kcat.yml (enzyme constrained model with nonzero kcats)
+   - Copies key artifacts into: metaMet/data_modeling/models/
+
+6) Quick sanity checks
+   - Run: qc_gecko_models.m
+   - Checks: YAML loadability + LP solve + basic ec/kcat coverage
+
+
+SECTION 2 — Key files (what each file is for)
+
+Core inputs/outputs
+- genome.faa
+  Protein FASTA used to build a minimal UniProt-like DB for GECKO.
+
+- model.xml
+  CarveMe SBML GEM output (starting point for YAML conversion).
+
+- model.yml
+  GECKO/RAVEN YAML GEM (used as input to makeEcModel).
+
+- ecModel.yml
+  GECKO ecModel YAML (contains enzyme-constraint structure; pre-kcat application).
+
+- ecModel_kcat.yml
+  Final GECKO ecModel YAML with metaMet-derived kcats applied (main deliverable).
+
+Bridge tables / data
+- rxn_to_ec.csv
+  Reaction-to-EC mapping exported from the GEM; used to map metaMet EC kcats onto model reactions.
+
+- metaMet/data/processed/overview/kcat_aggregate.csv
+  metaMet aggregated EC→kcat table used to assign kcats.
+
+- metaMet/data/raw/mapping_ec_numbers/mapping_ec_number_old_new.csv
+  Optional old→new EC mapping; used to normalize retired EC numbers.
+
+GECKO adapter artifacts
+- gecko_adapter/data/uniprot.tsv
+  Minimal UniProt-like table generated from genome.faa; avoids online downloads.
+
+- gecko_adapter/data/customKcats.tsv
+  Custom kcats table written for GECKO applyCustomKcats(); reaction-based kcat overrides.
+
+MATLAB scripts (pipeline)
+- sbml_to_yaml_roundtrip.m
+  Imports SBML and exports a GECKO/RAVEN YAML GEM; also reads back for a round-trip check.
+
+- prepare_gecko_adapter.m
+  Builds gecko_adapter/ and writes uniprot.tsv matching the model gene IDs.
+
+- build_ecmodel_gecko.m
+  Loads model.yml and runs makeEcModel() to produce ecModel.yml.
+
+- export_rxn_to_ec.m
+  Writes rxn_to_ec.csv by splitting/normalizing model.eccodes.
+
+- apply_kcat_from_metMet.m
+  Builds EC→kcat map from metaMet, converts to reaction kcats, writes customKcats.tsv, applies to ecModel, and exports ecModel_kcat.yml.
+
+- qc_gecko_models.m
+  Loads model.yml / ecModel.yml / ecModel_kcat.yml and reports objective + kcat coverage + LP solve status.
+
+metaMet copies (for co-located modeling)
+- metaMet/data_modeling/models/model.yml
+- metaMet/data_modeling/models/ecModel.yml
+- metaMet/data_modeling/models/ecModel_kcat.yml
+- metaMet/data_modeling/models/customKcats.tsv
+  Copies of the key GEM/ecModel artifacts for the metaMet project tree.
